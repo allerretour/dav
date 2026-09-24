@@ -67,12 +67,12 @@
     <h1>Éditeur de diagramme</h1>
 
     <div class="toolbar">
-        <button onclick="exportToFile()" class="success">Exporter un fichier</button>
+		<button onclick="clearAll()" class="danger">Effacer Tout</button>
         <button onclick="document.getElementById('importInput').click()" class="primary">Importer un fichier</button>
         <input type="file" id="importInput" accept=".json" onchange="importFromFile(event)" style="display: none;">
-        
+        <button onclick="exportToFile()" class="success">Exporter un fichier</button>
         <button onclick="exportToTextFile()">Exporter en Texte</button>
-        <button onclick="clearAll()" class="danger">Effacer Tout</button>
+        
     </div>
 
     <div class="main-container">
@@ -82,7 +82,7 @@
         </div>
 
         <div class="editor-panel">
-            <h3>Configuration du diagramme</h3>
+            
           
             
             
