@@ -1,50 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Éditeur de diagramme</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur de diagramme (17x9)</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cloudflare.com"></script>
+    <style>
+        .selected-cells-list {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #555555 !important;
+            border-radius: 4px;
+            padding: 5px;
+            font-size: 0.85rem;
+            background-color: #111111 !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        }
+        .selected-cells-list div {
+            padding: 8px 6px;
+            border-bottom: 1px solid #222222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #111111 !important;
+            color: #ffffff !important;
+        }
+        .selected-cells-list div:hover {
+            background-color: #1a3a22 !important;
+            color: #ffffff !important;
+        }
+        .selected-cells-list div:last-child {
+            border-bottom: none;
+        }
+        .selected-cells-list div strong {
+            color: #ffcc00 !important;
+            margin-right: 5px;
+        }
+        .badge-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 4px rgba(255,255,255,0.5), 1px 1px 2px rgba(0,0,0,0.9);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        /* Style alignement pour la checkbox */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .checkbox-row input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Éditeur de diagramme</h1>
-  <div class="container">
-    <div class="top-section">
-      <div class="file-input">
-        <button onclick="saveToFile()"><i class="fas fa-save"></i> Sauvegarder</button>
-        <button onclick="document.getElementById('fileInput').click()"><i class="fas fa-file-alt"></i> Restaurer</button>
-        <button class="clear-button" onclick="clearSelections()"><i class="fas fa-eraser"></i> Effacer</button>
-        <button onclick="toggleColors()"><i class="fas fa-palette"></i> Changer Couleurs</button>
-        <input type="file" id="fileInput" accept=".csv" onchange="loadFromFile()" style="display:none;">
-      </div>
+
+    <h1>Éditeur de diagramme</h1>
+
+    <div class="toolbar">
+        <button onclick="exportToFile()" class="success">Exporter un fichier</button>
+        <button onclick="document.getElementById('importInput').click()" class="primary">Importer un fichier</button>
+        <input type="file" id="importInput" accept=".json" onchange="importFromFile(event)" style="display: none;">
+        
+        <button onclick="exportToTextFile()">Exporter en Texte</button>
+        <button onclick="clearAll()" class="danger">Effacer Tout</button>
     </div>
-    <div class="input-field">
-      <label for="title">Titre</label>
-      <input type="text" id="title" placeholder="Entrez le titre">
+
+    <div class="main-container">
+        
+        <div class="grid-wrapper">
+            <div class="grid" id="diagramGrid"></div>
+        </div>
+
+        <div class="editor-panel">
+            <h3>Configuration du diagramme</h3>
+          
+            
+            
+            <div class="panel-group">
+                <label for="cellTitle">Titre du diagramme</label>
+                <input type="text" id="cellTitle" placeholder="Entrez le titre...">
+            </div>
+
+            <div class="panel-group">
+                <label for="cellDesc">Description</label>
+                <textarea id="cellDesc" placeholder="Entrez la description globale..."></textarea>
+            </div>
+
+			<div class="panel-group">
+                <label>Coordonnées de sélection</label>
+                <div>
+                    <span class="coords-display" id="coordX">X: --</span>
+                    <span class="coords-display" id="coordY">Y: --</span>
+                </div>
+            </div>
+			
+			<div class="panel-group" style="margin-top: 10px;">
+                <button id="clearCellBtn" disabled onclick="clearCurrentCell()"> 🗑️ Retirer la bille sélectionnée</button>
+            </div>
+			
+            <div class="panel-group">
+                <label>Sélectionner une bille de billard</label>
+                <div class="color-pickers" id="colorContainer">
+                    <!-- Génré dynamiquement -->
+                </div>
+            </div>
+
+            
+			
+			<div class="panel-group" style="background: #1a1a1a; padding: 10px; border-radius: 4px; border: 1px solid #333;">
+                <label for="billesCountInput">Nombre de billes numérotées (1 à 15)</label>
+                <input type="number" id="billesCountInput" min="1" max="15" value="15" onchange="updateMaxAvailableBilles()">
+                
+                <!-- NOUVEAU : Option inclure la blanche -->
+                <label class="checkbox-row">
+                    <input type="checkbox" id="includeBlancheCheck" checked>
+                    Inclure la bille Blanche (B)
+                </label>
+                
+                <button onclick="distributeRandomBilles()" class="success" style="margin-top: 8px; width: 100%;">🎲 Placement Aléatoire</button>
+            </div>
+
+            <div class="panel-group" style="margin-top: 15px;">
+                <label>Billes sur le tapis</label>
+                <div class="selected-cells-list" id="cellsListContainer">
+                    <div style="color: #999; font-style: italic;">Aucune bille sur le tapis</div>
+                </div>
+            </div>
+        </div>
+
     </div>
-    <div class="input-field">
-      <label for="description">Description</label>
-      <textarea id="description" rows="4" placeholder="Entrez la description"></textarea>
-    </div>
-    <div class="main-content">
-      <table class="compact-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>X</th>
-            <th>Y</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="coordinatesTable"></tbody>
-      </table>
-      <div class="billiard-table" id="billiardTable">
-        <div class="grid" id="grid"></div>
-      </div>
-    </div>
-    <div class="coordinates-display" id="coordinatesDisplay">Cliquez sur une cellule pour voir les coordonnées.</div>
-  </div>
-  <script src="script.js"></script>
+
+    <script src="config.js"></script>
+    <script src="actions.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>

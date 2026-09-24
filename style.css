@@ -1,0 +1,334 @@
+/* =======================================================
+   🎨 CONFIGURATION GLOBALE ET COULEURS
+   ======================================================= */
+:root {
+    --bg-color: #ffffff;
+    --grid-border: #3a5f43; /* Bordure style feutre vert */
+    --cell-bg: #2b4c34;     /* Fond de table de billard (Vert feutre) */
+    --accent: #007bff;
+    --success: #28a745;
+    --danger: #dc3545;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #1a3a22; /* Ambiance salle de billard sombre */
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+/* =======================================================
+   🛠️ BARRE D'OUTILS ET BOUTONS
+   ======================================================= */
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 8px 16px;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background-color: #3a3a3a;
+    border-color: #666;
+}
+
+button.primary { background-color: var(--accent); color: white; border-color: var(--accent); }
+button.primary:hover { background-color: #0056b3; }
+
+button.success { background-color: var(--success); color: white; border-color: var(--success); }
+button.success:hover { background-color: #218838; }
+
+button.danger { background-color: var(--danger); color: white; border-color: var(--danger); }
+button.danger:hover { background-color: #c82333; }
+
+/* =======================================================
+   📦 AGENCEMENT RESPONSIVE
+   ======================================================= */
+.main-container {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+}
+
+@media (max-width: 1024px) {
+    .main-container {
+        flex-direction: column;
+        overflow: auto;
+    }
+    .editor-panel {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+}
+
+/* =======================================================
+   🎱 LE TAPIS DE BILLARD (GRILLE ET CELLULES)
+   ======================================================= */
+.grid-wrapper {
+    flex: 1;
+    overflow: auto;
+    background: #0f3019; /* Vert tapis de billard profond */
+    border: 12px solid #5a3d28; /* Cadre en bois de la table */
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 8px 16px rgba(0,0,0,0.5);
+}
+
+.grid {
+    display: grid;
+    gap: 28px; /* Pas de gap pour garder l'alignement des bordures invisibles */
+    min-width: 950px; 
+}
+
+/* Cellules configurées en billes avec léger espacement */
+.cell {
+    width: 45px;
+    height: 45px;
+    background-color: var(--cell-bg);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+
+    /* Espacement intérieur régulier par bordure invisible */
+    border: 2px solid transparent !important; 
+    background-clip: padding-box; 
+}
+
+/* Texture 3D brillante dès qu'un emplacement contient une bille */
+.cell.has-bille {
+    border-radius: 50%;
+    background-image: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 40%), 
+                      radial-gradient(circle at 50% 50%, transparent 60%, rgba(0,0,0,0.4) 100%);
+    box-shadow: 2px 4px 8px rgba(0,0,0,0.4), inset -2px -2px 6px rgba(0,0,0,0.3);
+}
+
+/* Supprime le cercle blanc central uniquement pour la bille blanche */
+.cell.has-bille[data-bille-type="blanche"] .cell-number-circle {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    font-size: 1.1rem !important; /* Agrandit le "B" pour occuper toute la bille */
+}
+
+
+.cell:not(.header-cell):hover {
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 4px 8px 12px rgba(0,0,0,0.6);
+    z-index: 10;
+}
+
+/* Halo de sélection blanc de la bille active */
+.cell.active {
+    outline: none;
+    box-shadow: 0 0 0 1px #fff, 0 0 12px #fff;
+    border-radius: 50%;
+}
+
+/* Coordonnées en bordure de tapis (X et Y) */
+.cell.header-cell {
+    background: transparent !important;
+    color: #a3c4ad;
+    font-weight: bold;
+    font-size: 1.75rem; /* Corrigé : font-size au lieu de font-weight */
+    border: none !important;
+    box-shadow: none !important;
+    cursor: default;
+    pointer-events: none;
+}
+
+
+
+.cell.header-corner {
+    background: transparent !important;
+}
+
+/* Cercle blanc contenant le numéro au centre de la bille */
+.cell-number-circle {
+    width: 20px;
+    height: 20px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #000;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4);
+    user-select: none;
+}
+
+/* =======================================================
+   📋 PANNEAU LATÉRAL ET CONFIGURATION
+   ======================================================= */
+.editor-panel {
+    width: 300px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    color: #eee;
+}
+
+.panel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.panel-group label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+.panel-group input[type="text"],
+.panel-group input[type="number"],
+.panel-group textarea {
+    padding: 8px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.panel-group textarea {
+    resize: vertical;
+    height: 60px;
+}
+
+.coords-display {
+    font-size: 0.9rem;
+    color: #fff;
+    background: #444;
+    padding: 6px 10px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Palette de sélection des 16 billes */
+.color-pickers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 5px;
+}
+
+/* Style pour rendre les boutons de la palette ronds et identiques aux billes du tapis */
+.color-btn {
+    width: 35px !important;       
+    height: 35px !important;      
+    border-radius: 50% !important; /* Force la forme ronde */
+    border: 1px solid transparent !important;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    
+    /* Effet de reflet 3D de base */
+    background-image: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 40%), 
+                      radial-gradient(circle at 50% 50%, transparent 60%, rgba(0,0,0,0.4) 100%);
+    box-shadow: 2px 4px 6px rgba(0,0,0,0.4), inset -1px -1px 3px rgba(0,0,0,0.3);
+}
+
+.color-btn.selected {
+    border-color: #fff;
+    box-shadow: 0 0 8px #fff;
+}
+
+/* Opacité des billes bridées par le compteur (ex: au-delà de 10) */
+.color-btn.hidden-bille {
+    opacity: 0.05 !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+/* =======================================================
+   👁️ LISTE DES CAS DES BILLES UTILISÉES (HAUT CONTRASTE)
+   ======================================================= */
+.selected-cells-list {
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid #555555 !important;
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 0.85rem;
+    background-color: #111111 !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.selected-cells-list div {
+    padding: 8px 6px;
+    border-bottom: 1px solid #222222;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #111111 !important;
+    color: #ffffff !important;
+}
+
+.selected-cells-list div:hover {
+    background-color: #1a3a22 !important;
+    color: #ffffff !important;
+}
+
+.selected-cells-list div:last-child {
+    border-bottom: none;
+}
+
+.selected-cells-list div strong {
+    color: #ffcc00 !important; /* Jaune or pour détacher les coordonnées */
+    margin-right: 5px;
+}
+
+.badge-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 4px rgba(255,255,255,0.5), 1px 1px 2px rgba(0,0,0,0.9);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
